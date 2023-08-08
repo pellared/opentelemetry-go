@@ -14,6 +14,9 @@
 
 // Command jaeger is an example program that creates spans
 // and uploads to Jaeger.
+//
+// Deprecated: This example is no longer supported as the Jaeger exporter has
+// been deprecated.
 package main
 
 import (

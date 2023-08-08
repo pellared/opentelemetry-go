@@ -1,3 +1,5 @@
+// Deprecated: This module is no longer supported as the Jaeger exporter has
+// been deprecated.
 module go.opentelemetry.io/otel/example/jaeger
 
 go 1.19
