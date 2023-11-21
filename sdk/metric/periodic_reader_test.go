@@ -256,26 +256,13 @@ func (eh chErrorHandler) Handle(err error) {
 	eh.Err <- err
 }
 
-func triggerTicker(t *testing.T) chan time.Time {
-	t.Helper()
-
-	// Override the ticker C chan so tests are not flaky and rely on timing.
-	orig := newTicker
-	t.Cleanup(func() { newTicker = orig })
-
-	// Keep this at size zero so when triggered with a send it will hang until
-	// the select case is selected and the collection loop is started.
+func TestPeriodicReaderRun(t *testing.T) {
 	trigger := make(chan time.Time)
-	newTicker = func(d time.Duration) *time.Ticker {
+	newTicker := func(d time.Duration) *time.Ticker {
 		ticker := time.NewTicker(d)
 		ticker.C = trigger
 		return ticker
 	}
-	return trigger
-}
-
-func TestPeriodicReaderRun(t *testing.T) {
-	trigger := triggerTicker(t)
 
 	// Register an error handler to validate export errors are passed to
 	// otel.Handle.
@@ -293,7 +280,7 @@ func TestPeriodicReaderRun(t *testing.T) {
 		},
 	}
 
-	r := NewPeriodicReader(exp, WithProducer(testExternalProducer{}))
+	r := NewPeriodicReader(exp, WithProducer(testExternalProducer{}), withNewTicker(newTicker))
 	r.register(testSDKProducer{})
 	trigger <- time.Now()
 	assert.Equal(t, assert.AnError, <-eh.Err)
@@ -304,7 +291,12 @@ func TestPeriodicReaderRun(t *testing.T) {
 
 func TestPeriodicReaderFlushesPending(t *testing.T) {
 	// Override the ticker so tests are not flaky and rely on timing.
-	trigger := triggerTicker(t)
+	trigger := make(chan time.Time)
+	newTicker := func(d time.Duration) *time.Ticker {
+		ticker := time.NewTicker(d)
+		ticker.C = trigger
+		return ticker
+	}
 	t.Cleanup(func() { close(trigger) })
 
 	expFunc := func(t *testing.T) (exp Exporter, called *bool) {
@@ -321,7 +313,7 @@ func TestPeriodicReaderFlushesPending(t *testing.T) {
 
 	t.Run("ForceFlush", func(t *testing.T) {
 		exp, called := expFunc(t)
-		r := NewPeriodicReader(exp, WithProducer(testExternalProducer{}))
+		r := NewPeriodicReader(exp, withNewTicker(newTicker), WithProducer(testExternalProducer{}))
 		r.register(testSDKProducer{})
 		assert.Equal(t, assert.AnError, r.ForceFlush(context.Background()), "export error not returned")
 		assert.True(t, *called, "exporter Export method not called, pending telemetry not flushed")
@@ -333,7 +325,7 @@ func TestPeriodicReaderFlushesPending(t *testing.T) {
 	t.Run("ForceFlush timeout on producer", func(t *testing.T) {
 		exp, called := expFunc(t)
 		timeout := time.Millisecond
-		r := NewPeriodicReader(exp, WithTimeout(timeout), WithProducer(testExternalProducer{}))
+		r := NewPeriodicReader(exp, withNewTicker(newTicker), WithTimeout(timeout), WithProducer(testExternalProducer{}))
 		r.register(testSDKProducer{
 			produceFunc: func(ctx context.Context, rm *metricdata.ResourceMetrics) error {
 				select {
@@ -356,7 +348,7 @@ func TestPeriodicReaderFlushesPending(t *testing.T) {
 	t.Run("ForceFlush timeout on external producer", func(t *testing.T) {
 		exp, called := expFunc(t)
 		timeout := time.Millisecond
-		r := NewPeriodicReader(exp, WithTimeout(timeout), WithProducer(testExternalProducer{
+		r := NewPeriodicReader(exp, withNewTicker(newTicker), WithTimeout(timeout), WithProducer(testExternalProducer{
 			produceFunc: func(ctx context.Context) ([]metricdata.ScopeMetrics, error) {
 				select {
 				case <-time.After(timeout + time.Second):
@@ -377,7 +369,7 @@ func TestPeriodicReaderFlushesPending(t *testing.T) {
 
 	t.Run("Shutdown", func(t *testing.T) {
 		exp, called := expFunc(t)
-		r := NewPeriodicReader(exp, WithProducer(testExternalProducer{}))
+		r := NewPeriodicReader(exp, withNewTicker(newTicker), WithProducer(testExternalProducer{}))
 		r.register(testSDKProducer{})
 		assert.Equal(t, assert.AnError, r.Shutdown(context.Background()), "export error not returned")
 		assert.True(t, *called, "exporter Export method not called, pending telemetry not flushed")
@@ -386,7 +378,7 @@ func TestPeriodicReaderFlushesPending(t *testing.T) {
 	t.Run("Shutdown timeout on producer", func(t *testing.T) {
 		exp, called := expFunc(t)
 		timeout := time.Millisecond
-		r := NewPeriodicReader(exp, WithTimeout(timeout), WithProducer(testExternalProducer{}))
+		r := NewPeriodicReader(exp, withNewTicker(newTicker), WithTimeout(timeout), WithProducer(testExternalProducer{}))
 		r.register(testSDKProducer{
 			produceFunc: func(ctx context.Context, rm *metricdata.ResourceMetrics) error {
 				select {
@@ -406,7 +398,7 @@ func TestPeriodicReaderFlushesPending(t *testing.T) {
 	t.Run("Shutdown timeout on external producer", func(t *testing.T) {
 		exp, called := expFunc(t)
 		timeout := time.Millisecond
-		r := NewPeriodicReader(exp, WithTimeout(timeout), WithProducer(testExternalProducer{
+		r := NewPeriodicReader(exp, withNewTicker(newTicker), WithTimeout(timeout), WithProducer(testExternalProducer{
 			produceFunc: func(ctx context.Context) ([]metricdata.ScopeMetrics, error) {
 				select {
 				case <-time.After(timeout + time.Second):
@@ -429,6 +421,9 @@ func TestPeriodicReaderMultipleForceFlush(t *testing.T) {
 	r.register(testSDKProducer{})
 	require.NoError(t, r.ForceFlush(ctx))
 	require.NoError(t, r.ForceFlush(ctx))
+
+	// Ensure Reader is allowed clean up attempt.
+	_ = r.Shutdown(context.Background())
 }
 
 func BenchmarkPeriodicReader(b *testing.B) {
@@ -508,6 +503,9 @@ func TestPeriodicReaderCollect(t *testing.T) {
 
 			rm := &metricdata.ResourceMetrics{}
 			assert.Equal(t, tt.expectedErr, rdr.Collect(tt.ctx, rm))
+
+			// Ensure Reader is allowed clean up attempt.
+			_ = rdr.Shutdown(context.Background())
 		})
 	}
 }

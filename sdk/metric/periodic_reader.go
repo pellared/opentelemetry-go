@@ -38,14 +38,16 @@ type periodicReaderConfig struct {
 	interval  time.Duration
 	timeout   time.Duration
 	producers []Producer
+	newTicker func(d time.Duration) *time.Ticker // Allows testing override.
 }
 
 // newPeriodicReaderConfig returns a periodicReaderConfig configured with
 // options.
 func newPeriodicReaderConfig(options []PeriodicReaderOption) periodicReaderConfig {
 	c := periodicReaderConfig{
-		interval: envDuration(envInterval, defaultInterval),
-		timeout:  envDuration(envTimeout, defaultTimeout),
+		interval:  envDuration(envInterval, defaultInterval),
+		timeout:   envDuration(envTimeout, defaultTimeout),
+		newTicker: time.NewTicker,
 	}
 	for _, o := range options {
 		c = o.applyPeriodic(c)
@@ -105,6 +107,13 @@ func WithInterval(d time.Duration) PeriodicReaderOption {
 	})
 }
 
+func withNewTicker(newTicker func(d time.Duration) *time.Ticker) PeriodicReaderOption {
+	return periodicReaderOptionFunc(func(conf periodicReaderConfig) periodicReaderConfig {
+		conf.newTicker = newTicker
+		return conf
+	})
+}
+
 // NewPeriodicReader returns a Reader that collects and exports metric data to
 // the exporter at a defined interval. By default, the returned Reader will
 // collect and export data every 60 seconds, and will cancel any attempts that
@@ -118,12 +127,13 @@ func NewPeriodicReader(exporter Exporter, options ...PeriodicReaderOption) *Peri
 	conf := newPeriodicReaderConfig(options)
 	ctx, cancel := context.WithCancel(context.Background())
 	r := &PeriodicReader{
-		interval: conf.interval,
-		timeout:  conf.timeout,
-		exporter: exporter,
-		flushCh:  make(chan chan error),
-		cancel:   cancel,
-		done:     make(chan struct{}),
+		interval:  conf.interval,
+		timeout:   conf.timeout,
+		newTicker: conf.newTicker,
+		exporter:  exporter,
+		flushCh:   make(chan chan error),
+		cancel:    cancel,
+		done:      make(chan struct{}),
 		rmPool: sync.Pool{
 			New: func() interface{} {
 				return &metricdata.ResourceMetrics{}
@@ -149,10 +159,11 @@ type PeriodicReader struct {
 	isShutdown        bool
 	externalProducers atomic.Value
 
-	interval time.Duration
-	timeout  time.Duration
-	exporter Exporter
-	flushCh  chan chan error
+	interval  time.Duration
+	timeout   time.Duration
+	newTicker func(d time.Duration) *time.Ticker // Allows testing override.
+	exporter  Exporter
+	flushCh   chan chan error
 
 	done         chan struct{}
 	cancel       context.CancelFunc
@@ -164,13 +175,10 @@ type PeriodicReader struct {
 // Compile time check the periodicReader implements Reader and is comparable.
 var _ = map[Reader]struct{}{&PeriodicReader{}: {}}
 
-// newTicker allows testing override.
-var newTicker = time.NewTicker
-
 // run continuously collects and exports metric data at the specified
 // interval. This will run until ctx is canceled or times out.
 func (r *PeriodicReader) run(ctx context.Context, interval time.Duration) {
-	ticker := newTicker(interval)
+	ticker := r.newTicker(interval)
 	defer ticker.Stop()
 
 	for {
