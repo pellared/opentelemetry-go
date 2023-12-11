@@ -17,6 +17,7 @@ package noop // import "go.opentelemetry.io/otel/log/noop"
 import (
 	"context"
 
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/embedded"
 )
@@ -45,3 +46,8 @@ type Logger struct{ embedded.Logger }
 
 // Emit does nothing.
 func (Logger) Emit(context.Context, log.Record) {}
+
+// WithAttributes does nothing.
+func (l Logger) WithAttributes(attrs ...attribute.KeyValue) log.Logger {
+	return l
+}

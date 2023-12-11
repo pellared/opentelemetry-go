@@ -58,26 +58,28 @@ func BenchmarkEmit(b *testing.B) {
 				{
 					"no attrs",
 					func() {
-						r := log.Record{}
-						r.SetTimestamp(testTimestamp)
-						r.SetSeverity(testSeverity)
-						r.SetBody(testBody)
+						r := log.Record{
+							Timestamp: testTimestamp,
+							Severity:  testSeverity,
+							Body:      testBody,
+						}
 						tc.logger.Emit(ctx, r)
 					},
 				},
 				{
 					"3 attrs",
 					func() {
-						r := log.Record{}
-						r.SetTimestamp(testTimestamp)
-						r.SetSeverity(testSeverity)
-						r.SetBody(testBody)
-						r.AddAttributes(
+						r := log.Record{
+							Timestamp: testTimestamp,
+							Severity:  testSeverity,
+							Body:      testBody,
+						}
+						logger := tc.logger.WithAttributes(
 							attribute.String("string", testString),
 							attribute.Float64("float", testFloat),
 							attribute.Int("int", testInt),
 						)
-						tc.logger.Emit(ctx, r)
+						logger.Emit(ctx, r)
 					},
 				},
 				{
@@ -87,28 +89,30 @@ func BenchmarkEmit(b *testing.B) {
 					// should only be from strconv used in writerLogger.
 					"5 attrs",
 					func() {
-						r := log.Record{}
-						r.SetTimestamp(testTimestamp)
-						r.SetSeverity(testSeverity)
-						r.SetBody(testBody)
-						r.AddAttributes(
+						r := log.Record{
+							Timestamp: testTimestamp,
+							Severity:  testSeverity,
+							Body:      testBody,
+						}
+						logger := tc.logger.WithAttributes(
 							attribute.String("string", testString),
 							attribute.Float64("float", testFloat),
 							attribute.Int("int", testInt),
 							attribute.Bool("bool", testBool),
 							attribute.String("string", testString),
 						)
-						tc.logger.Emit(ctx, r)
+						logger.Emit(ctx, r)
 					},
 				},
 				{
 					"10 attrs",
 					func() {
-						r := log.Record{}
-						r.SetTimestamp(testTimestamp)
-						r.SetSeverity(testSeverity)
-						r.SetBody(testBody)
-						r.AddAttributes(
+						r := log.Record{
+							Timestamp: testTimestamp,
+							Severity:  testSeverity,
+							Body:      testBody,
+						}
+						logger := tc.logger.WithAttributes(
 							attribute.String("string", testString),
 							attribute.Float64("float", testFloat),
 							attribute.Int("int", testInt),
@@ -120,17 +124,18 @@ func BenchmarkEmit(b *testing.B) {
 							attribute.Bool("bool", testBool),
 							attribute.String("string", testString),
 						)
-						tc.logger.Emit(ctx, r)
+						logger.Emit(ctx, r)
 					},
 				},
 				{
 					"40 attrs",
 					func() {
-						r := log.Record{}
-						r.SetTimestamp(testTimestamp)
-						r.SetSeverity(testSeverity)
-						r.SetBody(testBody)
-						r.AddAttributes(
+						r := log.Record{
+							Timestamp: testTimestamp,
+							Severity:  testSeverity,
+							Body:      testBody,
+						}
+						logger := tc.logger.WithAttributes(
 							attribute.String("string", testString),
 							attribute.Float64("float", testFloat),
 							attribute.Int("int", testInt),
@@ -172,7 +177,7 @@ func BenchmarkEmit(b *testing.B) {
 							attribute.Bool("bool", testBool),
 							attribute.String("string", testString),
 						)
-						tc.logger.Emit(ctx, r)
+						logger.Emit(ctx, r)
 					},
 				},
 			} {

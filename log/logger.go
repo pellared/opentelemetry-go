@@ -6,6 +6,7 @@ package log // import "go.opentelemetry.io/otel/log"
 import (
 	"context"
 
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/log/embedded"
 )
 
@@ -15,4 +16,7 @@ type Logger interface {
 
 	// Emit TODO: comment.
 	Emit(ctx context.Context, record Record)
+
+	// WithAttributes TODO: comment.
+	WithAttributes(attrs ...attribute.KeyValue) Logger
 }

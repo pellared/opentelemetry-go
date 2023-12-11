@@ -21,14 +21,9 @@ func TestSlogHandler(t *testing.T) {
 
 	l.Info(testBody, "string", testString)
 
-	assert.Equal(t, testBody, spy.Record.Body())
-	assert.Equal(t, log.SeverityInfo, spy.Record.Severity())
-	assert.Equal(t, 1, spy.Record.AttributesLen())
-	spy.Record.WalkAttributes(func(kv attribute.KeyValue) bool {
-		assert.Equal(t, "string", string(kv.Key))
-		assert.Equal(t, testString, kv.Value.AsString())
-		return true
-	})
+	assert.Equal(t, testBody, spy.Record.Body)
+	assert.Equal(t, log.SeverityInfo, spy.Record.Severity)
+	assert.Equal(t, []attribute.KeyValue{attribute.String("string", testString)}, spy.Attrs)
 }
 
 type slogHandler struct {
@@ -40,19 +35,20 @@ type slogHandler struct {
 func (h *slogHandler) Handle(_ context.Context, r slog.Record) error {
 	record := log.Record{}
 
-	record.SetTimestamp(r.Time)
+	record.Timestamp = r.Time
 
-	record.SetBody(r.Message)
+	record.Body = r.Message
 
 	lvl := convertLevel(r.Level)
-	record.SetSeverity(lvl)
+	record.Severity = lvl
 
+	var logger log.Logger = h.Logger
 	r.Attrs(func(a slog.Attr) bool {
-		record.AddAttributes(convertAttr(a))
+		logger = logger.WithAttributes(convertAttr(a))
 		return true
 	})
 
-	h.Logger.Emit(context.Background(), record)
+	logger.Emit(context.Background(), record)
 	return nil
 }
 

@@ -21,14 +21,9 @@ func TestLogrSink(t *testing.T) {
 
 	l.Info(testBody, "string", testString)
 
-	assert.Equal(t, testBody, spy.Record.Body())
-	assert.Equal(t, log.SeverityInfo, spy.Record.Severity())
-	assert.Equal(t, 1, spy.Record.AttributesLen())
-	spy.Record.WalkAttributes(func(kv attribute.KeyValue) bool {
-		assert.Equal(t, "string", string(kv.Key))
-		assert.Equal(t, testString, kv.Value.AsString())
-		return true
-	})
+	assert.Equal(t, testBody, spy.Record.Body)
+	assert.Equal(t, log.SeverityInfo, spy.Record.Severity)
+	assert.Equal(t, []attribute.KeyValue{attribute.String("string", testString)}, spy.Attrs)
 }
 
 type logrSink struct {
@@ -49,14 +44,15 @@ func (s *logrSink) Enabled(level int) bool {
 func (s *logrSink) Info(level int, msg string, keysAndValues ...any) {
 	record := log.Record{}
 
-	record.SetBody(msg)
+	record.Body = msg
 
 	lvl := log.Severity(9 - level)
-	record.SetSeverity(lvl)
+	record.Severity = lvl
 
 	if len(keysAndValues)%2 == 1 {
 		panic("key without a value")
 	}
+	var logger log.Logger = s.Logger
 	kvCount := len(keysAndValues) / 2
 	for i := 0; i < kvCount; i++ {
 		k, ok := keysAndValues[i*2].(string)
@@ -64,10 +60,10 @@ func (s *logrSink) Info(level int, msg string, keysAndValues ...any) {
 			panic("key is not a string")
 		}
 		kv := convertKV(k, keysAndValues[i*2+1])
-		record.AddAttributes(kv)
+		logger = logger.WithAttributes(kv)
 	}
 
-	s.Logger.Emit(ctx, record)
+	logger.Emit(ctx, record)
 }
 
 // Error is implementated as a dummy.
