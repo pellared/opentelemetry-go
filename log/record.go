@@ -8,11 +8,8 @@
 package log // import "go.opentelemetry.io/otel/log"
 
 import (
-	"errors"
 	"time"
 )
-
-var errUnsafeAddAttrs = errors.New("unsafely called AddAttrs on copy of Record made without using Record.Clone")
 
 // Record TODO: comment.
 // TODO: Add unit tests.
