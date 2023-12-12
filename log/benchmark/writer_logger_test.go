@@ -123,7 +123,7 @@ func (l writerLogger) Emit(_ context.Context, r log.Record) {
 
 // walkAttributes calls f on each [attribute.KeyValue].
 // Iteration stops if f returns false.
-func (l *writerLogger) walkAttributes(f func(attribute.KeyValue) bool) {
+func (l writerLogger) walkAttributes(f func(attribute.KeyValue) bool) {
 	for i := 0; i < l.nFront; i++ {
 		if !f(l.front[i]) {
 			return
@@ -136,7 +136,7 @@ func (l *writerLogger) walkAttributes(f func(attribute.KeyValue) bool) {
 	}
 }
 
-func (l *writerLogger) appendValue(v attribute.Value) {
+func (l writerLogger) appendValue(v attribute.Value) {
 	switch v.Type() {
 	case attribute.STRING:
 		l.write(v.AsString())
@@ -151,7 +151,7 @@ func (l *writerLogger) appendValue(v attribute.Value) {
 	}
 }
 
-func (l *writerLogger) write(s string) {
+func (l writerLogger) write(s string) {
 	_, _ = io.WriteString(l.w, s)
 }
 

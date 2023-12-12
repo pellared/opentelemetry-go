@@ -48,7 +48,7 @@ func BenchmarkEmit(b *testing.B) {
 		logger log.Logger
 	}{
 		{"noop", noop.Logger{}},
-		{"writer", &writerLogger{w: io.Discard}},
+		{"writer", writerLogger{w: io.Discard}},
 	} {
 		b.Run(tc.name, func(b *testing.B) {
 			for _, call := range []struct {
