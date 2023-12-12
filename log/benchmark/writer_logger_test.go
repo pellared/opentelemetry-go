@@ -67,17 +67,15 @@ type writerLogger struct {
 const attributesInlineCount = 5
 
 // WithAttributes appends attributes that would be emitted by the logger.
-func (l *writerLogger) WithAttributes(attrs ...attribute.KeyValue) log.Logger {
-	cl := *l // shallow copy of the logger
-
+func (l writerLogger) WithAttributes(attrs ...attribute.KeyValue) log.Logger {
 	var i int
-	for i = 0; i < len(attrs) && cl.nFront < len(cl.front); i++ {
+	for i = 0; i < len(attrs) && l.nFront < len(l.front); i++ {
 		a := attrs[i]
 		if !a.Valid() {
 			continue
 		}
-		cl.front[cl.nFront] = a
-		cl.nFront++
+		l.front[l.nFront] = a
+		l.nFront++
 	}
 
 	var attrsToSlice int
@@ -88,21 +86,21 @@ func (l *writerLogger) WithAttributes(attrs ...attribute.KeyValue) log.Logger {
 	}
 
 	if attrsToSlice == 0 {
-		return &cl
+		return l
 	}
 
-	cl.back = sliceGrow(cl.back, attrsToSlice)
+	l.back = sliceGrow(l.back, attrsToSlice)
 	for _, a := range attrs[i:] {
 		if a.Valid() {
-			cl.back = append(cl.back, a)
+			l.back = append(l.back, a)
 		}
 	}
-	cl.back = sliceClip(cl.back) // prevent append from mutating shared array
+	l.back = sliceClip(l.back) // prevent append from mutating shared array
 
-	return &cl
+	return l
 }
 
-func (l *writerLogger) Emit(_ context.Context, r log.Record) {
+func (l writerLogger) Emit(_ context.Context, r log.Record) {
 	if !r.Timestamp.IsZero() {
 		l.write("timestamp=")
 		l.write(strconv.FormatInt(r.Timestamp.Unix(), 10))
