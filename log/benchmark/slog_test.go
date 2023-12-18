@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/log"
@@ -30,6 +31,8 @@ func TestSlogHandler(t *testing.T) {
 		},
 	}
 
+	assert.NotZero(t, spy.Record.Timestamp, "should set a timestamp")
+	spy.Record.Timestamp = time.Time{}
 	assert.Equal(t, want, spy.Record)
 }
 
@@ -40,7 +43,7 @@ type slogHandler struct {
 var slogAttrPool = sync.Pool{
 	New: func() interface{} {
 		attr := make([]attribute.KeyValue, 0, 5)
-		return attr
+		return &attr
 	},
 }
 

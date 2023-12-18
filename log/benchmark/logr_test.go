@@ -40,7 +40,7 @@ type logrSink struct {
 var logrAttrPool = sync.Pool{
 	New: func() interface{} {
 		attr := make([]attribute.KeyValue, 0, 5)
-		return attr
+		return &attr
 	},
 }
 
