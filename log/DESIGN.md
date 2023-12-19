@@ -222,8 +222,6 @@ Moreover, the logger returned by `WithAttribute` was allocated on the heap.
 
 At last, the proposal was not specification compliant.
 
-The proposal analysis was done [here](https://github.com/pellared/opentelemetry-go/pull/3).
-
 ### Record attributes like in slog.Record
 
 To reduce the number of allocations of the attributes,
