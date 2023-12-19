@@ -215,7 +215,7 @@ The idea was that the SDK would implement the performance improvements
 instead of doing it in the API.
 This would allow having different optimisation strategies.
 
-During the analysis[^4], it occured that the main problem of this proposal
+During the analysis[^4], it occurred that the main problem of this proposal
 is that the variadic slice passed to an interface method is always heap allocated.
 
 Moreover, the logger returned by `WithAttribute` was allocated on the heap.
@@ -225,7 +225,7 @@ At last, the proposal was not specification compliant.
 ### Record attributes like in slog.Record
 
 To reduce the number of allocations of the attributes,
-the `Record` could be modeled similary to [`slog.Record`](https://pkg.go.dev/log/slog#Record).
+the `Record` could be modeled similarly to [`slog.Record`](https://pkg.go.dev/log/slog#Record).
 `Record` could have `WalkAttributes` and `AddAttributes` methods,
 like [`slog.Record.Attrs`](https://pkg.go.dev/log/slog#Record.Attrs)
 and [`slog.Record.AddAttrs`](https://pkg.go.dev/log/slog#Record.AddAttrs),
