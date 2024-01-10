@@ -32,8 +32,15 @@ func (l *writerLogger) Emit(ctx context.Context, r log.Record) {
 	l.write("severity=")
 	l.write(strconv.FormatInt(int64(r.Severity), 10))
 	l.write(" ")
+
 	l.write("body=")
-	l.write(r.Body)
+	if s, ok := r.Body.(string); ok {
+		l.write(s)
+	} else {
+		s := fmt.Sprint(r.Body)
+		l.write(s)
+	}
+
 	for _, kv := range r.Attributes {
 		l.write(" ")
 		l.write(string(kv.Key))

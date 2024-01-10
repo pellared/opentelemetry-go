@@ -19,7 +19,7 @@ type Record struct {
 	ObservedTimestamp time.Time
 	Severity          Severity
 	SeverityText      string
-	Body              string
+	Body              any
 	Attributes        []attribute.KeyValue
 }
 
