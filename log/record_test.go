@@ -134,12 +134,6 @@ func TestRecordAliasingAndClone(t *testing.T) {
 		errs = append(errs, err)
 	}))
 
-	check := func(r Record, want []attribute.KeyValue) {
-		t.Helper()
-		got := attrsSlice(r)
-		assert.Equal(t, want, got)
-	}
-
 	// Create a record whose Attrs overflow the inline array,
 	// creating a slice in r.back.
 	r1 := Record{}
@@ -159,7 +153,7 @@ func TestRecordAliasingAndClone(t *testing.T) {
 	r1.AddAttributes(attribute.Int("p", 0))
 	assert.Zero(t, errs)
 	r2.AddAttributes(attribute.Int("p", 1))
-	assert.Equal(t, []error{errUnsafeAddAttrs}, errs)
+	assert.Equal(t, []error{errUnsafeAddAttrs}, errs, "sends an error via ErrorHandler when a dirty AddAttribute is detected")
 	errs = nil
 	assert.Equal(t, append(r1AttrsBefore, attribute.Int("p", 0)), attrsSlice(r1))
 	assert.Equal(t, append(r1AttrsBefore, attribute.Int("p", 1)), attrsSlice(r2))
@@ -168,7 +162,6 @@ func TestRecordAliasingAndClone(t *testing.T) {
 	r1Attrs := attrsSlice(r1)
 	r3 := r1.Clone()
 	assert.Equal(t, r1Attrs, attrsSlice(r3))
-	check(r3, r1Attrs)
 	r3.AddAttributes(attribute.Int("p", 2))
 	assert.Zero(t, errs)
 	assert.Equal(t, r1Attrs, attrsSlice(r1), "r1 is unchanged")
