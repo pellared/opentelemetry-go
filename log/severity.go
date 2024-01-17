@@ -14,10 +14,8 @@ type Severity int
 
 // Severity values defined by OpenTelemetry.
 const (
-	SeverityUndefined Severity = iota
-
 	// A fine-grained debugging log record. Typically disabled in default configurations.
-	SeverityTrace1
+	SeverityTrace1 Severity = iota + 1
 	SeverityTrace2
 	SeverityTrace3
 	SeverityTrace4
