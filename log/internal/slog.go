@@ -38,17 +38,17 @@ func (h *slogHandler) Handle(ctx context.Context, r slog.Record) error {
 	return nil
 }
 
-// Enabled is implementated as a dummy.
+// Enabled is implemented as a dummy.
 func (h *slogHandler) Enabled(_ context.Context, _ slog.Level) bool {
 	return true
 }
 
-// WithAttrs is implementated as a dummy.
+// WithAttrs is implemented as a dummy.
 func (h *slogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return h
 }
 
-// WithGroup is implementated as a dummy.
+// WithGroup is implemented as a dummy.
 func (h *slogHandler) WithGroup(name string) slog.Handler {
 	return h
 }

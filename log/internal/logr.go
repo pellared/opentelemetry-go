@@ -17,11 +17,11 @@ type logrSink struct {
 	Logger log.Logger
 }
 
-// Init is implementated as a dummy.
+// Init is implemented as a dummy.
 func (s *logrSink) Init(info logr.RuntimeInfo) {
 }
 
-// Enabled is implementated as a dummy.
+// Enabled is implemented as a dummy.
 func (s *logrSink) Enabled(level int) bool {
 	return true
 }
@@ -59,16 +59,16 @@ func (s *logrSink) Info(level int, msg string, keysAndValues ...any) {
 	s.Logger.Emit(ctx, record)
 }
 
-// Error is implementated as a dummy.
+// Error is implemented as a dummy.
 func (s *logrSink) Error(err error, msg string, keysAndValues ...any) {
 }
 
-// WithValues is implementated as a dummy.
+// WithValues is implemented as a dummy.
 func (s *logrSink) WithValues(keysAndValues ...any) logr.LogSink {
 	return s
 }
 
-// WithName is implementated as a dummy.
+// WithName is implemented as a dummy.
 func (s *logrSink) WithName(name string) logr.LogSink {
 	return s
 }
