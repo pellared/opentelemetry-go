@@ -51,9 +51,7 @@ const (
 	SeverityFatal2
 	SeverityFatal3
 	SeverityFatal4
-)
 
-const (
 	SeverityTrace = SeverityTrace1
 	SeverityDebug = SeverityDebug1
 	SeverityInfo  = SeverityInfo1
