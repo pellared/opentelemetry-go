@@ -19,11 +19,11 @@ import (
 // The zero Value corresponds to nil.
 type Value struct {
 	_ [0]func() // disallow ==
-	// num holds the value for Kinds Int64, Uint64, Float64, and Bool,
-	// the length for Kinds String, Bytes.
+	// num holds the value for Kinds: Int64, Uint64, Float64, and Bool,
+	// the length for String, Bytes, Group.
 	num uint64
 	// If any is of type Kind, then the value is in num as described above.
-	// Otherwise (if is of type stringptr, bytesptr or groupptr) then it contains the value.
+	// Otherwise (if is of type stringptr, bytesptr or groupptr) it contains the value.
 	any any
 }
 
