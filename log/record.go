@@ -172,23 +172,3 @@ func countInvalidAttrs(as []KeyValue) int {
 	}
 	return n
 }
-
-// sliceGrow increases the slice's capacity, if necessary, to guarantee space
-// for another n elements. After Grow(n), at least n elements can be appended
-// to the slice without another allocation. If n is negative or too large to
-// allocate the memory, Grow panics.
-//
-// This is a copy from https://pkg.go.dev/slices as it is not available in Go 1.20.
-func sliceGrow[S ~[]E, E any](s S, n int) S {
-	if n -= cap(s) - len(s); n > 0 {
-		s = append(s[:cap(s)], make([]E, n)...)[:len(s)]
-	}
-	return s
-}
-
-// sliceClip removes unused capacity from the slice, returning s[:len(s):len(s)].
-//
-// This is a copy from https://pkg.go.dev/slices as it is not available in Go 1.20.
-func sliceClip[S ~[]E, E any](s S) S {
-	return s[:len(s):len(s)]
-}

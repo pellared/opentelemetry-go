@@ -10,7 +10,6 @@ package log // import "go.opentelemetry.io/otel/log"
 import (
 	"fmt"
 	"math"
-	"slices"
 	"strconv"
 	"unsafe"
 )
@@ -81,8 +80,6 @@ func (v Value) Kind() Kind {
 	}
 }
 
-//////////////// Constructors
-
 // StringValue returns a new [Value] for a string.
 func StringValue(value string) Value {
 	return Value{num: uint64(len(value)), any: stringptr(unsafe.StringData(value))}
@@ -145,8 +142,6 @@ func countEmptyGroups(as []KeyValue) int {
 	}
 	return n
 }
-
-//////////////// Accessors
 
 // Any returns v's value as an any.
 func (v Value) Any() any {
@@ -243,8 +238,6 @@ func (v Value) group() []KeyValue {
 	return unsafe.Slice((*KeyValue)(v.any.(groupptr)), v.num)
 }
 
-//////////////// Other
-
 // Empty reports whether the value is empty (coresponds to nil).
 func (v Value) Empty() bool {
 	return v.Kind() == KindEmpty
@@ -265,7 +258,7 @@ func (v Value) Equal(w Value) bool {
 	case KindFloat64:
 		return v.float() == w.float()
 	case KindGroup:
-		return slices.EqualFunc(v.group(), w.group(), KeyValue.Equal)
+		return sliceEqualFunc(v.group(), w.group(), KeyValue.Equal)
 	case KindEmpty:
 		return k1 == k2
 	default:
