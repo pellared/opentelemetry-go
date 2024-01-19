@@ -20,16 +20,17 @@ import (
 type Value struct {
 	_ [0]func() // disallow ==
 	// num holds the value for Kinds: Int64, Float64, and Bool,
-	// the length for String, Bytes, Group.
+	// the length for String, Bytes, List, Group.
 	num uint64
 	// If any is of type Kind, then the value is in num as described above.
-	// Otherwise (if is of type stringptr, bytesptr or groupptr) it contains the value.
+	// Otherwise (if is of type stringptr, listptr, sliceptr or groupptr) it contains the value.
 	any any
 }
 
 type (
 	stringptr *byte     // used in Value.any when the Value is a string
 	bytesptr  *byte     // used in Value.any when the Value is a []byte
+	listptr   *Value    // used in Value.any when the Value is a []Value
 	groupptr  *KeyValue // used in Value.any when the Value is a []KeyValue
 )
 
@@ -44,6 +45,7 @@ const (
 	KindInt64
 	KindString
 	KindBytes
+	KindList
 	KindGroup
 )
 
@@ -54,6 +56,7 @@ var kindStrings = []string{
 	"Int64",
 	"String",
 	"Bytes",
+	"List",
 	"Group",
 }
 
@@ -75,6 +78,8 @@ func (v Value) Kind() Kind {
 		return KindString
 	case bytesptr:
 		return KindBytes
+	case listptr:
+		return KindList
 	case groupptr:
 		return KindGroup
 	default:
@@ -117,22 +122,28 @@ func BytesValue(v []byte) Value {
 	return Value{num: uint64(len(v)), any: bytesptr(unsafe.SliceData(v))}
 }
 
+// ListValue returns a [Value] for a list of [Value].
+// The caller must not subsequently mutate the argument slice.
+func ListValue(vs ...Value) Value {
+	return Value{num: uint64(len(vs)), any: listptr(unsafe.SliceData(vs))}
+}
+
 // GroupValue returns a new [Value] for a list of key-value pairs.
 // The caller must not subsequently mutate the argument slice.
-func GroupValue(as ...KeyValue) Value {
+func GroupValue(kvs ...KeyValue) Value {
 	// Remove empty groups.
 	// It is simpler overall to do this at construction than
 	// to check each Group recursively for emptiness.
-	if n := countEmptyGroups(as); n > 0 {
-		as2 := make([]KeyValue, 0, len(as)-n)
-		for _, a := range as {
+	if n := countEmptyGroups(kvs); n > 0 {
+		as2 := make([]KeyValue, 0, len(kvs)-n)
+		for _, a := range kvs {
 			if !a.Value.isEmptyGroup() {
 				as2 = append(as2, a)
 			}
 		}
-		as = as2
+		kvs = as2
 	}
-	return Value{num: uint64(len(as)), any: groupptr(unsafe.SliceData(as))}
+	return Value{num: uint64(len(kvs)), any: groupptr(unsafe.SliceData(kvs))}
 }
 
 // countEmptyGroups returns the number of empty group values in its argument.
@@ -151,6 +162,8 @@ func (v Value) Any() any {
 	switch v.Kind() {
 	case KindGroup:
 		return v.group()
+	case KindList:
+		return v.list()
 	case KindInt64:
 		return int64(v.num)
 	case KindFloat64:
@@ -232,6 +245,19 @@ func (v Value) bytes() []byte {
 	return unsafe.Slice((*byte)(v.any.(bytesptr)), v.num)
 }
 
+// List returns v's value as a []Value.
+// It panics if v's [Kind] is not [KindList].
+func (v Value) List() []Value {
+	if sp, ok := v.any.(listptr); ok {
+		return unsafe.Slice((*Value)(sp), v.num)
+	}
+	panic("List: bad kind")
+}
+
+func (v Value) list() []Value {
+	return unsafe.Slice((*Value)(v.any.(listptr)), v.num)
+}
+
 // Group returns v's value as a []KeyValue.
 // It panics if v's [Kind] is not [KindGroup].
 func (v Value) Group() []KeyValue {
@@ -264,6 +290,8 @@ func (v Value) Equal(w Value) bool {
 		return v.str() == w.str()
 	case KindFloat64:
 		return v.float() == w.float()
+	case KindList:
+		return sliceEqualFunc(v.list(), w.list(), Value.Equal)
 	case KindGroup:
 		return sliceEqualFunc(v.group(), w.group(), KeyValue.Equal)
 	case KindBytes:
@@ -302,6 +330,8 @@ func (v Value) append(dst []byte) []byte {
 		return fmt.Append(dst, v.bytes())
 	case KindGroup:
 		return fmt.Append(dst, v.group())
+	case KindList:
+		return fmt.Append(dst, v.list())
 	case KindEmpty:
 		return append(dst, emptyString...)
 	default:
@@ -344,6 +374,11 @@ func Bool(key string, v bool) KeyValue {
 // Bytes returns an KeyValue for a bytes.
 func Bytes(key string, v []byte) KeyValue {
 	return KeyValue{key, BytesValue(v)}
+}
+
+// Bytes returns an KeyValue for a list of [Value].
+func List(key string, args ...Value) KeyValue {
+	return KeyValue{key, ListValue(args...)}
 }
 
 // Group returns an KeyValue for a Group [Value].

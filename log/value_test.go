@@ -31,7 +31,9 @@ func TestValueEqual(t *testing.T) {
 		BoolValue(false),
 		StringValue("hi"),
 		BytesValue([]byte{1, 3, 5}),
-		GroupValue(Bool("b", true), Int("i", 3), Bytes("b", []byte{3, 5, 7})),
+		ListValue(IntValue(3), StringValue("foo")),
+		GroupValue(Bool("b", true), Int("i", 3)),
+		GroupValue(List("l", IntValue(3), StringValue("foo")), Bytes("b", []byte{3, 5, 7})),
 	}
 	for i, v1 := range vals {
 		for j, v2 := range vals {
@@ -54,6 +56,7 @@ func TestValueString(t *testing.T) {
 		{BoolValue(true), "true"},
 		{StringValue("foo"), "foo"},
 		{BytesValue([]byte{2, 4, 6}), "[2 4 6]"},
+		{ListValue(IntValue(3), StringValue("foo")), "[3 foo]"},
 		{GroupValue(Int("a", 1), Bool("b", true)), "[a=1 b=true]"},
 		{Value{}, "<nil>"},
 	} {
@@ -123,6 +126,7 @@ func TestValueAny(t *testing.T) {
 		{int64(11), Int64Value(11)},
 		{1.5, Float64Value(1.5)},
 		{[]byte{1, 2, 3}, BytesValue([]byte{1, 2, 3})},
+		{[]Value{IntValue(3)}, ListValue(IntValue(3))},
 		{[]KeyValue{Int("i", 3)}, GroupValue(Int("i", 3))},
 		{nil, Value{}},
 	} {
@@ -131,7 +135,7 @@ func TestValueAny(t *testing.T) {
 	}
 }
 
-func TestEmptyGroup(t *testing.T) {
+func TestGroupValueWithEmptyGroups(t *testing.T) {
 	g := GroupValue(
 		Int("a", 1),
 		Group("g1", Group("g2")),
@@ -139,6 +143,18 @@ func TestEmptyGroup(t *testing.T) {
 	got := g.Group()
 	want := []KeyValue{Int("a", 1), Group("g3", Group("g4", Int("b", 2)))}
 	assert.Equal(t, want, got)
+}
+
+func TestEmptyGroup(t *testing.T) {
+	g := Group("g")
+	got := g.Value.Group()
+	assert.Nil(t, got)
+}
+
+func TestEmptyList(t *testing.T) {
+	l := ListValue()
+	got := l.List()
+	assert.Nil(t, got)
 }
 
 // A Value with "unsafe" strings is significantly faster:
