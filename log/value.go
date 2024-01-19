@@ -19,7 +19,7 @@ import (
 // The zero Value corresponds to nil.
 type Value struct {
 	_ [0]func() // disallow ==
-	// num holds the value for Kinds: Int64, Uint64, Float64, and Bool,
+	// num holds the value for Kinds: Int64, Float64, and Bool,
 	// the length for String, Bytes, Group.
 	num uint64
 	// If any is of type Kind, then the value is in num as described above.
@@ -43,7 +43,6 @@ const (
 	KindFloat64
 	KindInt64
 	KindString
-	KindUint64
 	KindBytes
 	KindGroup
 )
@@ -54,7 +53,6 @@ var kindStrings = []string{
 	"Float64",
 	"Int64",
 	"String",
-	"Uint64",
 	"Bytes",
 	"Group",
 }
@@ -97,11 +95,6 @@ func IntValue(v int) Value {
 // Int64Value returns a [Value] for an int64.
 func Int64Value(v int64) Value {
 	return Value{num: uint64(v), any: KindInt64}
-}
-
-// Uint64Value returns a [Value] for a uint64.
-func Uint64Value(v uint64) Value {
-	return Value{num: v, any: KindUint64}
 }
 
 // Float64Value returns a [Value] for a floating-point number.
@@ -160,8 +153,6 @@ func (v Value) Any() any {
 		return v.group()
 	case KindInt64:
 		return int64(v.num)
-	case KindUint64:
-		return v.num
 	case KindFloat64:
 		return v.float()
 	case KindString:
@@ -199,15 +190,6 @@ func (v Value) Int64() int64 {
 		panic(fmt.Sprintf("Value kind is %s, not %s", g, w))
 	}
 	return int64(v.num)
-}
-
-// Uint64 returns v's value as a uint64. It panics
-// if v is not an unsigned integer.
-func (v Value) Uint64() uint64 {
-	if g, w := v.Kind(), KindUint64; g != w {
-		panic(fmt.Sprintf("Value kind is %s, not %s", g, w))
-	}
-	return v.num
 }
 
 // Bool returns v's value as a bool. It panics
@@ -276,7 +258,7 @@ func (v Value) Equal(w Value) bool {
 		return false
 	}
 	switch k1 {
-	case KindInt64, KindUint64, KindBool:
+	case KindInt64, KindBool:
 		return v.num == w.num
 	case KindString:
 		return v.str() == w.str()
@@ -312,8 +294,6 @@ func (v Value) append(dst []byte) []byte {
 		return append(dst, v.str()...)
 	case KindInt64:
 		return strconv.AppendInt(dst, int64(v.num), 10)
-	case KindUint64:
-		return strconv.AppendUint(dst, v.num, 10)
 	case KindFloat64:
 		return strconv.AppendFloat(dst, v.float(), 'g', -1, 64)
 	case KindBool:
@@ -349,11 +329,6 @@ func Int64(key string, value int64) KeyValue {
 // an KeyValue with that value.
 func Int(key string, value int) KeyValue {
 	return Int64(key, int64(value))
-}
-
-// Uint64 returns an KeyValue for a uint64.
-func Uint64(key string, v uint64) KeyValue {
-	return KeyValue{key, Uint64Value(v)}
 }
 
 // Float64 returns an KeyValue for a floating-point number.

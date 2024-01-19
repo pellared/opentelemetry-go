@@ -59,8 +59,6 @@ func (l *writerLogger) appendValue(v log.Value) {
 		l.write(v.String())
 	case log.KindInt64:
 		l.write(strconv.FormatInt(v.Int64(), 10)) // strconv.FormatInt allocates memory.
-	case log.KindUint64:
-		l.write(strconv.FormatInt(int64(v.Uint64()), 10)) // strconv.FormatInt allocates memory.
 	case log.KindFloat64:
 		l.write(strconv.FormatFloat(v.Float64(), 'g', -1, 64)) // strconv.FormatFloat allocates memory.
 	case log.KindBool:
