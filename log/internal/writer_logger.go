@@ -65,6 +65,8 @@ func (l *writerLogger) appendValue(v log.Value) {
 		l.write(strconv.FormatFloat(v.Float64(), 'g', -1, 64)) // strconv.FormatFloat allocates memory.
 	case log.KindBool:
 		l.write(strconv.FormatBool(v.Bool()))
+	case log.KindBytes:
+		l.write(fmt.Sprint(v.Bytes()))
 	case log.KindGroup:
 		l.write(fmt.Sprint(v.Group()))
 	case log.KindEmpty:

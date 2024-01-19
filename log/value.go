@@ -8,6 +8,7 @@
 package log // import "go.opentelemetry.io/otel/log"
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"strconv"
@@ -19,17 +20,16 @@ import (
 type Value struct {
 	_ [0]func() // disallow ==
 	// num holds the value for Kinds Int64, Uint64, Float64, and Bool,
-	// the string length for KindString.
+	// the length for Kinds String, Bytes.
 	num uint64
 	// If any is of type Kind, then the value is in num as described above.
-	// If any is of type stringptr, then the Kind is String and the string value
-	// consists of the length in num and the pointer in any.
-	// (This implies that key-value pairs cannot store values of type stringptr.)
+	// Otherwise (if is of type stringptr, bytesptr or groupptr) then it contains the value.
 	any any
 }
 
 type (
 	stringptr *byte     // used in Value.any when the Value is a string
+	bytesptr  *byte     // used in Value.any when the Value is a []byte
 	groupptr  *KeyValue // used in Value.any when the Value is a []Attr
 )
 
@@ -44,6 +44,7 @@ const (
 	KindInt64
 	KindString
 	KindUint64
+	KindBytes
 	KindGroup
 )
 
@@ -54,6 +55,7 @@ var kindStrings = []string{
 	"Int64",
 	"String",
 	"Uint64",
+	"Bytes",
 	"Group",
 }
 
@@ -73,6 +75,8 @@ func (v Value) Kind() Kind {
 		return x
 	case stringptr:
 		return KindString
+	case bytesptr:
+		return KindBytes
 	case groupptr:
 		return KindGroup
 	default:
@@ -112,6 +116,12 @@ func BoolValue(v bool) Value { //nolint:revive // We are passing bool as this is
 		u = 1
 	}
 	return Value{num: u, any: KindBool}
+}
+
+// BytesValue returns a [Value] for bytes.
+// The caller must not subsequently mutate the argument slice.
+func BytesValue(v []byte) Value {
+	return Value{num: uint64(len(v)), any: bytesptr(unsafe.SliceData(v))}
 }
 
 // GroupValue returns a new [Value] for a list of key-value pairs.
@@ -158,6 +168,8 @@ func (v Value) Any() any {
 		return v.str()
 	case KindBool:
 		return v.bool()
+	case KindBytes:
+		return v.bytes()
 	case KindEmpty:
 		return nil
 	default:
@@ -225,7 +237,20 @@ func (v Value) float() float64 {
 	return math.Float64frombits(v.num)
 }
 
-// Group returns v's value as a []Attr.
+// Group returns v's value as a []byte.
+// It panics if v's [Kind] is not [KindBytes].
+func (v Value) Bytes() []byte {
+	if sp, ok := v.any.(bytesptr); ok {
+		return unsafe.Slice((*byte)(sp), v.num)
+	}
+	panic("Bytes: bad kind")
+}
+
+func (v Value) bytes() []byte {
+	return unsafe.Slice((*byte)(v.any.(bytesptr)), v.num)
+}
+
+// Group returns v's value as a []KeyValue.
 // It panics if v's [Kind] is not [KindGroup].
 func (v Value) Group() []KeyValue {
 	if sp, ok := v.any.(groupptr); ok {
@@ -259,8 +284,10 @@ func (v Value) Equal(w Value) bool {
 		return v.float() == w.float()
 	case KindGroup:
 		return sliceEqualFunc(v.group(), w.group(), KeyValue.Equal)
+	case KindBytes:
+		return bytes.Equal(v.bytes(), w.bytes())
 	case KindEmpty:
-		return k1 == k2
+		return true
 	default:
 		panic(fmt.Sprintf("bad kind: %s", k1))
 	}
@@ -291,6 +318,8 @@ func (v Value) append(dst []byte) []byte {
 		return strconv.AppendFloat(dst, v.float(), 'g', -1, 64)
 	case KindBool:
 		return strconv.AppendBool(dst, v.bool())
+	case KindBytes:
+		return fmt.Append(dst, v.bytes())
 	case KindGroup:
 		return fmt.Append(dst, v.group())
 	case KindEmpty:
@@ -335,6 +364,11 @@ func Float64(key string, v float64) KeyValue {
 // Bool returns an KeyValue for a bool.
 func Bool(key string, v bool) KeyValue {
 	return KeyValue{key, BoolValue(v)}
+}
+
+// Bytes returns an KeyValue for a bytes.
+func Bytes(key string, v []byte) KeyValue {
+	return KeyValue{key, BytesValue(v)}
 }
 
 // Group returns an KeyValue for a Group [Value].
