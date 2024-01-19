@@ -65,8 +65,8 @@ func (l *writerLogger) appendValue(v log.Value) {
 		l.write(strconv.FormatBool(v.Bool()))
 	case log.KindBytes:
 		l.write(fmt.Sprint(v.Bytes()))
-	case log.KindGroup:
-		l.write(fmt.Sprint(v.Group()))
+	case log.KindMap:
+		l.write(fmt.Sprint(v.Map()))
 	case log.KindEmpty:
 		l.write("<nil>")
 	default:

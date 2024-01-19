@@ -20,10 +20,10 @@ import (
 type Value struct {
 	_ [0]func() // disallow ==
 	// num holds the value for Kinds: Int64, Float64, and Bool,
-	// the length for String, Bytes, List, Group.
+	// the length for String, Bytes, List, Map.
 	num uint64
 	// If any is of type Kind, then the value is in num as described above.
-	// Otherwise (if is of type stringptr, listptr, sliceptr or groupptr) it contains the value.
+	// Otherwise (if is of type stringptr, listptr, sliceptr or mapptr) it contains the value.
 	any any
 }
 
@@ -31,7 +31,7 @@ type (
 	stringptr *byte     // used in Value.any when the Value is a string
 	bytesptr  *byte     // used in Value.any when the Value is a []byte
 	listptr   *Value    // used in Value.any when the Value is a []Value
-	groupptr  *KeyValue // used in Value.any when the Value is a []KeyValue
+	mapptr    *KeyValue // used in Value.any when the Value is a []KeyValue
 )
 
 // Kind is the kind of a [Value].
@@ -46,7 +46,7 @@ const (
 	KindString
 	KindBytes
 	KindList
-	KindGroup
+	KindMap
 )
 
 var kindStrings = []string{
@@ -57,7 +57,7 @@ var kindStrings = []string{
 	"String",
 	"Bytes",
 	"List",
-	"Group",
+	"Map",
 }
 
 var emptyString = []byte("<nil>")
@@ -80,8 +80,8 @@ func (v Value) Kind() Kind {
 		return KindBytes
 	case listptr:
 		return KindList
-	case groupptr:
-		return KindGroup
+	case mapptr:
+		return KindMap
 	default:
 		return KindEmpty
 	}
@@ -128,17 +128,17 @@ func ListValue(vs ...Value) Value {
 	return Value{num: uint64(len(vs)), any: listptr(unsafe.SliceData(vs))}
 }
 
-// GroupValue returns a new [Value] for a list of key-value pairs.
+// MapValue returns a new [Value] for a list of key-value pairs.
 // The caller must not subsequently mutate the argument slice.
-func GroupValue(kvs ...KeyValue) Value {
-	return Value{num: uint64(len(kvs)), any: groupptr(unsafe.SliceData(kvs))}
+func MapValue(kvs ...KeyValue) Value {
+	return Value{num: uint64(len(kvs)), any: mapptr(unsafe.SliceData(kvs))}
 }
 
 // Any returns v's value as an any.
 func (v Value) Any() any {
 	switch v.Kind() {
-	case KindGroup:
-		return v.group()
+	case KindMap:
+		return v.mapValue()
 	case KindList:
 		return v.list()
 	case KindInt64:
@@ -209,7 +209,7 @@ func (v Value) float() float64 {
 	return math.Float64frombits(v.num)
 }
 
-// Group returns v's value as a []byte.
+// Map returns v's value as a []byte.
 // It panics if v's [Kind] is not [KindBytes].
 func (v Value) Bytes() []byte {
 	if sp, ok := v.any.(bytesptr); ok {
@@ -235,17 +235,17 @@ func (v Value) list() []Value {
 	return unsafe.Slice((*Value)(v.any.(listptr)), v.num)
 }
 
-// Group returns v's value as a []KeyValue.
-// It panics if v's [Kind] is not [KindGroup].
-func (v Value) Group() []KeyValue {
-	if sp, ok := v.any.(groupptr); ok {
+// Map returns v's value as a []KeyValue.
+// It panics if v's [Kind] is not [KindMap].
+func (v Value) Map() []KeyValue {
+	if sp, ok := v.any.(mapptr); ok {
 		return unsafe.Slice((*KeyValue)(sp), v.num)
 	}
-	panic("Group: bad kind")
+	panic("Map: bad kind")
 }
 
-func (v Value) group() []KeyValue {
-	return unsafe.Slice((*KeyValue)(v.any.(groupptr)), v.num)
+func (v Value) mapValue() []KeyValue {
+	return unsafe.Slice((*KeyValue)(v.any.(mapptr)), v.num)
 }
 
 // Empty reports whether the value is empty (coresponds to nil).
@@ -269,8 +269,8 @@ func (v Value) Equal(w Value) bool {
 		return v.float() == w.float()
 	case KindList:
 		return sliceEqualFunc(v.list(), w.list(), Value.Equal)
-	case KindGroup:
-		return sliceEqualFunc(v.group(), w.group(), KeyValue.Equal)
+	case KindMap:
+		return sliceEqualFunc(v.mapValue(), w.mapValue(), KeyValue.Equal)
 	case KindBytes:
 		return bytes.Equal(v.bytes(), w.bytes())
 	case KindEmpty:
@@ -278,17 +278,6 @@ func (v Value) Equal(w Value) bool {
 	default:
 		panic(fmt.Sprintf("bad kind: %s", k1))
 	}
-}
-
-// isEmptyGroup reports whether v is a group that has no attributes.
-func (v Value) isEmptyGroup() bool {
-	if v.Kind() != KindGroup {
-		return false
-	}
-	// We do not need to recursively examine the group's key-value pairs for emptiness,
-	// because GroupValue removed them when the group was constructed, and
-	// groups are immutable.
-	return len(v.group()) == 0
 }
 
 // append appends a text representation of v to dst.
@@ -305,8 +294,8 @@ func (v Value) append(dst []byte) []byte {
 		return strconv.AppendBool(dst, v.bool())
 	case KindBytes:
 		return fmt.Append(dst, v.bytes())
-	case KindGroup:
-		return fmt.Append(dst, v.group())
+	case KindMap:
+		return fmt.Append(dst, v.mapValue())
 	case KindList:
 		return fmt.Append(dst, v.list())
 	case KindEmpty:
@@ -358,12 +347,12 @@ func List(key string, args ...Value) KeyValue {
 	return KeyValue{key, ListValue(args...)}
 }
 
-// Group returns an KeyValue for a Group [Value].
+// Map returns an KeyValue for a Map [Value].
 //
-// Use Group to collect several key-value pairs under a single
+// Use Map to collect several key-value pairs under a single
 // key.
-func Group(key string, args ...KeyValue) KeyValue {
-	return KeyValue{key, GroupValue(args...)}
+func Map(key string, args ...KeyValue) KeyValue {
+	return KeyValue{key, MapValue(args...)}
 }
 
 // Invalid reports whether the key-value has empty key or value.

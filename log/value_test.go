@@ -16,8 +16,8 @@ import (
 )
 
 func TestKindString(t *testing.T) {
-	got := KindGroup.String()
-	assert.Equal(t, "Group", got)
+	got := KindMap.String()
+	assert.Equal(t, "Map", got)
 }
 
 func TestValueEqual(t *testing.T) {
@@ -32,8 +32,8 @@ func TestValueEqual(t *testing.T) {
 		StringValue("hi"),
 		BytesValue([]byte{1, 3, 5}),
 		ListValue(IntValue(3), StringValue("foo")),
-		GroupValue(Bool("b", true), Int("i", 3)),
-		GroupValue(List("l", IntValue(3), StringValue("foo")), Bytes("b", []byte{3, 5, 7})),
+		MapValue(Bool("b", true), Int("i", 3)),
+		MapValue(List("l", IntValue(3), StringValue("foo")), Bytes("b", []byte{3, 5, 7})),
 	}
 	for i, v1 := range vals {
 		for j, v2 := range vals {
@@ -57,7 +57,7 @@ func TestValueString(t *testing.T) {
 		{StringValue("foo"), "foo"},
 		{BytesValue([]byte{2, 4, 6}), "[2 4 6]"},
 		{ListValue(IntValue(3), StringValue("foo")), "[3 foo]"},
-		{GroupValue(Int("a", 1), Bool("b", true)), "[a=1 b=true]"},
+		{MapValue(Int("a", 1), Bool("b", true)), "[a=1 b=true]"},
 		{Value{}, "<nil>"},
 	} {
 		got := test.v.String()
@@ -127,7 +127,7 @@ func TestValueAny(t *testing.T) {
 		{1.5, Float64Value(1.5)},
 		{[]byte{1, 2, 3}, BytesValue([]byte{1, 2, 3})},
 		{[]Value{IntValue(3)}, ListValue(IntValue(3))},
-		{[]KeyValue{Int("i", 3)}, GroupValue(Int("i", 3))},
+		{[]KeyValue{Int("i", 3)}, MapValue(Int("i", 3))},
 		{nil, Value{}},
 	} {
 		got := test.in.Any()
@@ -135,9 +135,9 @@ func TestValueAny(t *testing.T) {
 	}
 }
 
-func TestEmptyGroup(t *testing.T) {
-	g := Group("g")
-	got := g.Value.Group()
+func TestEmptyMap(t *testing.T) {
+	g := Map("g")
+	got := g.Value.Map()
 	assert.Nil(t, got)
 }
 
@@ -147,14 +147,14 @@ func TestEmptyList(t *testing.T) {
 	assert.Nil(t, got)
 }
 
-func TestGroupValueWithEmptyGroups(t *testing.T) {
+func TestMapValueWithEmptyMaps(t *testing.T) {
 	// Preserve empty groups.
-	g := GroupValue(
+	g := MapValue(
 		Int("a", 1),
-		Group("g1", Group("g2")),
-		Group("g3", Group("g4", Int("b", 2))))
-	got := g.Group()
-	want := []KeyValue{Int("a", 1), Group("g1", Group("g2")), Group("g3", Group("g4", Int("b", 2)))}
+		Map("g1", Map("g2")),
+		Map("g3", Map("g4", Int("b", 2))))
+	got := g.Map()
+	want := []KeyValue{Int("a", 1), Map("g1", Map("g2")), Map("g3", Map("g4", Int("b", 2)))}
 	assert.Equal(t, want, got)
 }
 
