@@ -131,30 +131,7 @@ func ListValue(vs ...Value) Value {
 // GroupValue returns a new [Value] for a list of key-value pairs.
 // The caller must not subsequently mutate the argument slice.
 func GroupValue(kvs ...KeyValue) Value {
-	// Remove empty groups.
-	// It is simpler overall to do this at construction than
-	// to check each Group recursively for emptiness.
-	if n := countEmptyGroups(kvs); n > 0 {
-		as2 := make([]KeyValue, 0, len(kvs)-n)
-		for _, a := range kvs {
-			if !a.Value.isEmptyGroup() {
-				as2 = append(as2, a)
-			}
-		}
-		kvs = as2
-	}
 	return Value{num: uint64(len(kvs)), any: groupptr(unsafe.SliceData(kvs))}
-}
-
-// countEmptyGroups returns the number of empty group values in its argument.
-func countEmptyGroups(as []KeyValue) int {
-	n := 0
-	for _, a := range as {
-		if a.Value.isEmptyGroup() {
-			n++
-		}
-	}
-	return n
 }
 
 // Any returns v's value as an any.

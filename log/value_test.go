@@ -135,16 +135,6 @@ func TestValueAny(t *testing.T) {
 	}
 }
 
-func TestGroupValueWithEmptyGroups(t *testing.T) {
-	g := GroupValue(
-		Int("a", 1),
-		Group("g1", Group("g2")),
-		Group("g3", Group("g4", Int("b", 2))))
-	got := g.Group()
-	want := []KeyValue{Int("a", 1), Group("g3", Group("g4", Int("b", 2)))}
-	assert.Equal(t, want, got)
-}
-
 func TestEmptyGroup(t *testing.T) {
 	g := Group("g")
 	got := g.Value.Group()
@@ -155,6 +145,25 @@ func TestEmptyList(t *testing.T) {
 	l := ListValue()
 	got := l.List()
 	assert.Nil(t, got)
+}
+
+func TestGroupValueWithEmptyGroups(t *testing.T) {
+	// Preserve empty groups.
+	g := GroupValue(
+		Int("a", 1),
+		Group("g1", Group("g2")),
+		Group("g3", Group("g4", Int("b", 2))))
+	got := g.Group()
+	want := []KeyValue{Int("a", 1), Group("g1", Group("g2")), Group("g3", Group("g4", Int("b", 2)))}
+	assert.Equal(t, want, got)
+}
+
+func TestListValueWithEmptyValues(t *testing.T) {
+	// Preserve empty values.
+	l := ListValue(Value{})
+	got := l.List()
+	want := []Value{{}}
+	assert.Equal(t, want, got)
 }
 
 // A Value with "unsafe" strings is significantly faster:
