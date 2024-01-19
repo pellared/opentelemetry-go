@@ -30,7 +30,7 @@ type Value struct {
 type (
 	stringptr *byte     // used in Value.any when the Value is a string
 	bytesptr  *byte     // used in Value.any when the Value is a []byte
-	groupptr  *KeyValue // used in Value.any when the Value is a []Attr
+	groupptr  *KeyValue // used in Value.any when the Value is a []KeyValue
 )
 
 // Kind is the kind of a [Value].
