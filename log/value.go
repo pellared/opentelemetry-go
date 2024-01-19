@@ -50,7 +50,7 @@ const (
 )
 
 var kindStrings = []string{
-	"KindEmpty",
+	"Empty",
 	"Bool",
 	"Float64",
 	"Int64",
