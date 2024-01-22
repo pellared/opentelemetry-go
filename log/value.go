@@ -355,9 +355,9 @@ func Map(key string, args ...KeyValue) KeyValue {
 	return KeyValue{key, MapValue(args...)}
 }
 
-// Invalid reports whether the key-value has empty key or value.
+// Invalid reports whether the key is empty.
 func (a KeyValue) Invalid() bool {
-	return a.Key == "" || a.Value.Empty()
+	return a.Key == ""
 }
 
 // Equal reports whether a and b have equal keys and values.
