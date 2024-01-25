@@ -153,9 +153,8 @@ func (r *Record) AddAttributes(attrs ...KeyValue) {
 // The original record and the clone can both be modified
 // without interfering with each other.
 func (r *Record) Clone() Record {
-	cloned := *r
-	cloned.back = sliceClip(r.back) // prevent append from mutating shared array
-	return cloned
+	r.back = sliceClip(r.back) // prevent append from mutating shared array
+	return *r
 }
 
 // AttributesLen returns the number of attributes in the Record.
