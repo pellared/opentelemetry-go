@@ -172,6 +172,9 @@ func WithResource(res *resource.Resource) LoggerProviderOption {
 // By default, if this option is not used, the LoggerProvider will perform no
 // operations; no data will be exported without a processor.
 //
+// Each WithProcessor creates a separate pipeline. Use custom decotarators
+// for advanced scenarios such as enriching with attributes.
+//
 // Use NewBatchingProcessor to batch log records before they are exported.
 // Use NewSimpleProcessor to synchronously export log records.
 func WithProcessor(processor Processor) LoggerProviderOption {
