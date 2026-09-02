@@ -30,7 +30,7 @@ replace go.opentelemetry.io/otel/sdk => ../../../../../sdk
 
 replace go.opentelemetry.io/otel/trace => ../../../../../trace
 
-replace go.opentelemetry.io/proto/otlphttp => github.com/pellared/opentelemetry-proto-go/otlphttp v0.0.0-20260902183618-9b820c222ae8
+replace go.opentelemetry.io/proto/otlphttp => github.com/pellared/opentelemetry-proto-go/otlphttp v0.0.0-20260902190748-436d9073304e
 
 replace go.opentelemetry.io/otel/sdk/metric => ../../../../../sdk/metric
 

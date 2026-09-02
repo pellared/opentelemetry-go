@@ -21,5 +21,5 @@ from dependency modules, consumers testing this branch need this directive in
 their main module:
 
 ```go
-replace go.opentelemetry.io/proto/otlphttp => github.com/pellared/opentelemetry-proto-go/otlphttp v0.0.0-20260902183618-9b820c222ae8
+replace go.opentelemetry.io/proto/otlphttp => github.com/pellared/opentelemetry-proto-go/otlphttp v0.0.0-20260902190748-436d9073304e
 ```
