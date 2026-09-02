@@ -241,15 +241,16 @@ func TestExporterReportsJSONPartialSuccess(t *testing.T) {
 
 func TestExporterShutdown(t *testing.T) {
 	started := make(chan struct{})
-	requestDone := make(chan struct{})
-	server := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
-		close(started)
-		<-requestDone
-	}))
-	t.Cleanup(server.Close)
+	httpClient := &http.Client{
+		Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+			close(started)
+			<-r.Context().Done()
+			return nil, context.Cause(r.Context())
+		}),
+	}
 
 	exporter, err := New(t.Context(),
-		WithEndpointURL(server.URL),
+		WithHTTPClient(httpClient),
 		WithRetry(RetryConfig{Enabled: false}),
 	)
 	require.NoError(t, err)
@@ -260,15 +261,20 @@ func TestExporterShutdown(t *testing.T) {
 	}()
 	<-started
 	require.NoError(t, exporter.Shutdown(t.Context()))
-	close(requestDone)
 
-	require.Error(t, <-exportDone)
+	require.ErrorIs(t, <-exportDone, context.Canceled)
 	assert.ErrorIs(
 		t,
 		exporter.ExportSpans(t.Context(), tracetest.SpanStubs{{Name: "stopped"}}.Snapshots()),
 		errShutdown,
 	)
 	require.NoError(t, exporter.Shutdown(t.Context()))
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(request *http.Request) (*http.Response, error) {
+	return f(request)
 }
 
 func TestNewWithCanceledContext(t *testing.T) {
