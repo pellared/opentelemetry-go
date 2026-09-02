@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"time"
 
-	cpb "go.opentelemetry.io/proto/otlp/common/v1"
-	mpb "go.opentelemetry.io/proto/otlp/metrics/v1"
-	rpb "go.opentelemetry.io/proto/otlp/resource/v1"
+	cpb "go.opentelemetry.io/proto/otlphttp/common/v1"
+	mpb "go.opentelemetry.io/proto/otlphttp/metrics/v1"
+	rpb "go.opentelemetry.io/proto/otlphttp/resource/v1"
 
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )

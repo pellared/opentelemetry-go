@@ -27,6 +27,7 @@ var DefaultEnvOptionsReader = envconfig.EnvOptionsReader{
 	Namespace: "OTEL_EXPORTER_OTLP",
 }
 
+{{ if .grpc -}}
 // ApplyGRPCEnvConfigs applies the env configurations for gRPC.
 func ApplyGRPCEnvConfigs(cfg Config) Config {
 	opts := getOptionsFromEnv()
@@ -35,6 +36,7 @@ func ApplyGRPCEnvConfigs(cfg Config) Config {
 	}
 	return cfg
 }
+{{ end }}
 
 // ApplyHTTPEnvConfigs applies the env configurations for HTTP.
 func ApplyHTTPEnvConfigs(cfg Config) Config {
@@ -49,26 +51,38 @@ func getOptionsFromEnv() []GenericOption {
 	opts := []GenericOption{}
 
 	tlsConf := &tls.Config{}
-	DefaultEnvOptionsReader.Apply(
-		envconfig.WithURL("ENDPOINT", func(u *url.URL) {
-			opts = append(
-				opts,
-				withEndpointScheme(u),
-				newSplitOption(func(cfg Config) Config {
+		DefaultEnvOptionsReader.Apply(
+			envconfig.WithURL("ENDPOINT", func(u *url.URL) {
+				opts = append(
+					opts,
+					withEndpointScheme(u),
+					{{ if .grpc -}}
+					newSplitOption(func(cfg Config) Config {
 					cfg.Metrics.Endpoint = u.Host
 					// For OTLP/HTTP endpoint URLs without a per-signal
 					// configuration, the passed endpoint is used as a base URL
 					// and the signals are sent to these paths relative to that.
 					cfg.Metrics.URLPath = path.Join(u.Path, DefaultMetricsPath)
-					return cfg
-				}, withEndpointForGRPC(u)),
-			)
-		}),
+						return cfg
+					}, withEndpointForGRPC(u)),
+					{{ else -}}
+					newGenericOption(func(cfg Config) Config {
+						cfg.Metrics.Endpoint = u.Host
+						// For OTLP/HTTP endpoint URLs without a per-signal
+						// configuration, the passed endpoint is used as a base URL
+						// and the signals are sent to these paths relative to that.
+						cfg.Metrics.URLPath = path.Join(u.Path, DefaultMetricsPath)
+						return cfg
+					}),
+					{{ end -}}
+				)
+			}),
 		envconfig.WithURL("METRICS_ENDPOINT", func(u *url.URL) {
-			opts = append(
-				opts,
-				withEndpointScheme(u),
-				newSplitOption(func(cfg Config) Config {
+				opts = append(
+					opts,
+					withEndpointScheme(u),
+					{{ if .grpc -}}
+					newSplitOption(func(cfg Config) Config {
 					cfg.Metrics.Endpoint = u.Host
 					// For endpoint URLs for OTLP/HTTP per-signal variables, the
 					// URL MUST be used as-is without any modification. The only
@@ -79,9 +93,24 @@ func getOptionsFromEnv() []GenericOption {
 						path = "/"
 					}
 					cfg.Metrics.URLPath = path
-					return cfg
-				}, withEndpointForGRPC(u)),
-			)
+						return cfg
+					}, withEndpointForGRPC(u)),
+					{{ else -}}
+					newGenericOption(func(cfg Config) Config {
+						cfg.Metrics.Endpoint = u.Host
+						// For endpoint URLs for OTLP/HTTP per-signal variables, the
+						// URL MUST be used as-is without any modification. The only
+						// exception is that if an URL contains no path part, the root
+						// path / MUST be used.
+						path := u.Path
+						if path == "" {
+							path = "/"
+						}
+						cfg.Metrics.URLPath = path
+						return cfg
+					}),
+					{{ end -}}
+				)
 		}),
 		envconfig.WithCertPool("CERTIFICATE", func(p *x509.CertPool) { tlsConf.RootCAs = p }),
 		envconfig.WithCertPool("METRICS_CERTIFICATE", func(p *x509.CertPool) { tlsConf.RootCAs = p }),
@@ -117,6 +146,7 @@ func getOptionsFromEnv() []GenericOption {
 	return opts
 }
 
+{{ if .grpc -}}
 func withEndpointForGRPC(u *url.URL) func(cfg Config) Config {
 	return func(cfg Config) Config {
 		// For OTLP/gRPC endpoints, this is the target to which the
@@ -125,6 +155,7 @@ func withEndpointForGRPC(u *url.URL) func(cfg Config) Config {
 		return cfg
 	}
 }
+{{ end }}
 
 // WithEnvCompression retrieves the specified config and passes it to ConfigFn as a Compression.
 func WithEnvCompression(n string, fn func(Compression)) func(e *envconfig.EnvOptionsReader) {

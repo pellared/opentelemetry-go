@@ -11,8 +11,8 @@ import (
 	"errors"
 	"testing"
 
-	cpb "go.opentelemetry.io/proto/otlp/collector/metrics/v1"
-	mpb "go.opentelemetry.io/proto/otlp/metrics/v1"
+	cpb "{{ .protoImportPath }}/collector/metrics/v1"
+	mpb "{{ .protoImportPath }}/metrics/v1"
 
 	"{{ .internalImportPath }}"
 	"go.opentelemetry.io/otel/sdk/metric"
