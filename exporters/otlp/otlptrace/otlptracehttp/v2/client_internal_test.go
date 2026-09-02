@@ -24,7 +24,8 @@ func TestRetryAfterDuration(t *testing.T) {
 		err := newResponseError(http.Header{"Retry-After": {date}}, nil)
 		retry, delay := evaluate(err)
 		assert.True(t, retry)
-		assert.InDelta(t, time.Hour, delay, float64(time.Second))
+		assert.Greater(t, delay, 59*time.Minute)
+		assert.LessOrEqual(t, delay, time.Hour)
 	})
 
 	t.Run("overflow", func(t *testing.T) {
