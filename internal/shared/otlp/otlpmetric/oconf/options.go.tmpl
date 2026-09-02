@@ -16,12 +16,14 @@ import (
 	"strings"
 	"time"
 
+{{ if .grpc -}}
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/encoding/gzip"
 
+{{ end -}}
 	"{{ .retryImportPath }}"
 	"go.opentelemetry.io/otel/internal/global"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -64,8 +66,10 @@ type (
 		TemporalitySelector metric.TemporalitySelector
 		AggregationSelector metric.AggregationSelector
 
+		{{ if .grpc -}}
 		// gRPC configurations
 		GRPCCredentials credentials.TransportCredentials
+		{{ end }}
 
 		// HTTP configurations
 		Proxy      HTTPTransportProxyFunc
@@ -78,11 +82,13 @@ type (
 
 		RetryConfig retry.Config
 
+		{{ if .grpc -}}
 		// gRPC configurations
 		ReconnectionPeriod time.Duration
 		ServiceConfig      string
 		DialOptions        []grpc.DialOption
 		GRPCConn           *grpc.ClientConn
+		{{ end }}
 	}
 )
 
@@ -123,6 +129,7 @@ func cleanPath(urlPath, defaultPath string) string {
 	return tmp
 }
 
+{{ if .grpc -}}
 // NewGRPCConfig returns a new Config with all settings applied from opts and
 // any unset setting using the default gRPC config values.
 func NewGRPCConfig(opts ...GRPCOption) Config {
@@ -177,12 +184,15 @@ func NewGRPCConfig(opts ...GRPCOption) Config {
 
 	return cfg
 }
+{{ end }}
 
 type (
-	// GenericOption applies an option to the HTTP or gRPC driver.
+	// GenericOption applies an option to the HTTP{{ if .grpc }} or gRPC{{ end }} driver.
 	GenericOption interface {
 		ApplyHTTPOption(Config) Config
+		{{ if .grpc -}}
 		ApplyGRPCOption(Config) Config
+		{{ end }}
 
 		// A private method to prevent users implementing the
 		// interface and so future additions to it will not
@@ -200,6 +210,7 @@ type (
 		private()
 	}
 
+	{{ if .grpc -}}
 	// GRPCOption applies an option to the gRPC driver.
 	GRPCOption interface {
 		ApplyGRPCOption(Config) Config
@@ -209,17 +220,24 @@ type (
 		// violate compatibility.
 		private()
 	}
+	{{ end -}}
 )
 
 // genericOption is an option that applies the same logic
+{{ if .grpc -}}
 // for both gRPC and HTTP.
+{{ else -}}
+// for HTTP.
+{{ end -}}
 type genericOption struct {
 	fn func(Config) Config
 }
 
+{{ if .grpc -}}
 func (g *genericOption) ApplyGRPCOption(cfg Config) Config {
 	return g.fn(cfg)
 }
+{{ end }}
 
 func (g *genericOption) ApplyHTTPOption(cfg Config) Config {
 	return g.fn(cfg)
@@ -231,6 +249,7 @@ func newGenericOption(fn func(cfg Config) Config) GenericOption {
 	return &genericOption{fn: fn}
 }
 
+{{ if .grpc -}}
 // splitOption is an option that applies different logics
 // for gRPC and HTTP.
 type splitOption struct {
@@ -251,6 +270,7 @@ func (splitOption) private() {}
 func newSplitOption(httpFn, grpcFn func(cfg Config) Config) GenericOption {
 	return &splitOption{httpFn: httpFn, grpcFn: grpcFn}
 }
+{{ end }}
 
 // httpOption is an option that is only applied to the HTTP driver.
 type httpOption struct {
@@ -267,6 +287,7 @@ func NewHTTPOption(fn func(cfg Config) Config) HTTPOption {
 	return &httpOption{fn: fn}
 }
 
+{{ if .grpc -}}
 // grpcOption is an option that is only applied to the gRPC driver.
 type grpcOption struct {
 	fn func(Config) Config
@@ -281,6 +302,7 @@ func (grpcOption) private() {}
 func NewGRPCOption(fn func(cfg Config) Config) GRPCOption {
 	return &grpcOption{fn: fn}
 }
+{{ end }}
 
 // Generic Options
 
@@ -303,7 +325,7 @@ func WithEndpointURL(v string) GenericOption {
 		cfg.Metrics.URLPath = u.Path
 		if cfg.Metrics.URLPath == "" {
 			// For HTTP exporters, a URL without a path targets the root path. Set it explicitly so the default signal
-			// path is not appended by cleanPath. (URLPath is ignored by gRPC exporters.)
+			// path is not appended by cleanPath.{{ if .grpc }} (URLPath is ignored by gRPC exporters.){{ end }}
 			cfg.Metrics.URLPath = "/"
 		}
 		cfg.Metrics.Insecure = u.Scheme != "https"
@@ -334,6 +356,7 @@ func WithRetry(rc retry.Config) GenericOption {
 }
 
 func WithTLSClientConfig(tlsCfg *tls.Config) GenericOption {
+	{{ if .grpc -}}
 	return newSplitOption(func(cfg Config) Config {
 		cfg.Metrics.TLSCfg = tlsCfg.Clone()
 		return cfg
@@ -341,6 +364,12 @@ func WithTLSClientConfig(tlsCfg *tls.Config) GenericOption {
 		cfg.Metrics.GRPCCredentials = credentials.NewTLS(tlsCfg)
 		return cfg
 	})
+	{{ else -}}
+	return newGenericOption(func(cfg Config) Config {
+		cfg.Metrics.TLSCfg = tlsCfg.Clone()
+		return cfg
+	})
+	{{ end -}}
 }
 
 func WithInsecure() GenericOption {

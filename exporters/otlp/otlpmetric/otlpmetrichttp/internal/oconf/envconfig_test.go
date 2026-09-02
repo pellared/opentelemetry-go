@@ -77,7 +77,7 @@ func TestWithEnvTemporalityPreference(t *testing.T) {
 				return origReader(key)
 			}
 			cfg := Config{}
-			cfg = ApplyGRPCEnvConfigs(cfg)
+			cfg = ApplyHTTPEnvConfigs(cfg)
 
 			if tt.want == nil {
 				// There is no function set, the SDK's default is used.
@@ -167,7 +167,7 @@ func TestWithEnvAggPreference(t *testing.T) {
 				return origReader(key)
 			}
 			cfg := Config{}
-			cfg = ApplyGRPCEnvConfigs(cfg)
+			cfg = ApplyHTTPEnvConfigs(cfg)
 
 			if tt.want == nil {
 				// There is no function set, the SDK's default is used.

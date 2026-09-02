@@ -14,7 +14,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	{{ if .grpc -}}
 	"google.golang.org/grpc"
+	{{ end }}
 
 	"{{ .envconfigImportPath }}"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -291,11 +293,15 @@ func TestConfigs(t *testing.T) {
 		{
 			name: "Test Default Certificate",
 			asserts: func(t *testing.T, c *Config, grpcOption bool) { //nolint:revive // interface compliance
+				{{ if .grpc -}}
 				if grpcOption {
 					assert.NotNil(t, c.Metrics.GRPCCredentials)
 				} else {
+				{{ end -}}
 					assert.Nil(t, c.Metrics.TLSCfg)
+				{{ if .grpc -}}
 				}
+				{{ end -}}
 			},
 		},
 		{
@@ -304,13 +310,17 @@ func TestConfigs(t *testing.T) {
 				WithTLSClientConfig(tlsCert),
 			},
 			asserts: func(t *testing.T, c *Config, grpcOption bool) { //nolint:revive // interface compliance
+				{{ if .grpc -}}
 				if grpcOption {
 					// TODO: make sure gRPC's credentials actually works
 					assert.NotNil(t, c.Metrics.GRPCCredentials)
 				} else {
+				{{ end -}}
 					// nolint:staticcheck // Subjects is deprecated but needed for verification
 					assert.Equal(t, tlsCert.RootCAs.Subjects(), c.Metrics.TLSCfg.RootCAs.Subjects())
+				{{ if .grpc -}}
 				}
+				{{ end -}}
 			},
 		},
 		{
@@ -322,12 +332,16 @@ func TestConfigs(t *testing.T) {
 				"cert_path": []byte(WeakCertificate),
 			},
 			asserts: func(t *testing.T, c *Config, grpcOption bool) { //nolint:revive // interface compliance
+				{{ if .grpc -}}
 				if grpcOption {
 					assert.NotNil(t, c.Metrics.GRPCCredentials)
 				} else {
+				{{ end -}}
 					// nolint:staticcheck // Subjects is deprecated but needed for verification
 					assert.Equal(t, tlsCert.RootCAs.Subjects(), c.Metrics.TLSCfg.RootCAs.Subjects())
+				{{ if .grpc -}}
 				}
+				{{ end -}}
 			},
 		},
 		{
@@ -341,12 +355,16 @@ func TestConfigs(t *testing.T) {
 				"invalid_cert": []byte("invalid certificate file."),
 			},
 			asserts: func(t *testing.T, c *Config, grpcOption bool) { //nolint:revive // interface compliance
+				{{ if .grpc -}}
 				if grpcOption {
 					assert.NotNil(t, c.Metrics.GRPCCredentials)
 				} else {
+				{{ end -}}
 					// nolint:staticcheck // Subjects is deprecated but needed for verification
 					assert.Equal(t, tlsCert.RootCAs.Subjects(), c.Metrics.TLSCfg.RootCAs.Subjects())
+				{{ if .grpc -}}
 				}
+				{{ end -}}
 			},
 		},
 		{
@@ -359,12 +377,16 @@ func TestConfigs(t *testing.T) {
 				"cert_path": []byte(WeakCertificate),
 			},
 			asserts: func(t *testing.T, c *Config, grpcOption bool) { //nolint:revive // interface compliance
+				{{ if .grpc -}}
 				if grpcOption {
 					assert.NotNil(t, c.Metrics.GRPCCredentials)
 				} else {
+				{{ end -}}
 					// nolint:staticcheck // Subjects is deprecated but needed for verification
 					assert.Len(t, c.Metrics.TLSCfg.RootCAs.Subjects(), 1)
+				{{ if .grpc -}}
 				}
+				{{ end -}}
 			},
 		},
 
@@ -563,6 +585,7 @@ func TestConfigs(t *testing.T) {
 			},
 		},
 
+		{{ if .grpc -}}
 		{
 			name: "Test With ServiceConfig, ReconnectionPeriod, And Caller-Supplied DialOption",
 			opts: []GenericOption{
@@ -586,6 +609,7 @@ func TestConfigs(t *testing.T) {
 				assert.Len(t, c.DialOptions, len(baseline.DialOptions)+3)
 			},
 		},
+		{{ end -}}
 	}
 
 	for _, tt := range tests {
@@ -601,10 +625,12 @@ func TestConfigs(t *testing.T) {
 			// Tests Generic options as HTTP Options
 			cfg := NewHTTPConfig(asHTTPOptions(tt.opts)...)
 			tt.asserts(t, &cfg, false)
+{{- if .grpc }}
 
 			// Tests Generic options as gRPC Options
 			cfg = NewGRPCConfig(asGRPCOptions(tt.opts)...)
 			tt.asserts(t, &cfg, true)
+{{- end }}
 		})
 	}
 }
@@ -625,6 +651,7 @@ func asHTTPOptions(opts []GenericOption) []HTTPOption {
 	return converted
 }
 
+{{ if .grpc -}}
 func asGRPCOptions(opts []GenericOption) []GRPCOption {
 	converted := make([]GRPCOption, len(opts))
 	for i, o := range opts {
@@ -632,6 +659,7 @@ func asGRPCOptions(opts []GenericOption) []GRPCOption {
 	}
 	return converted
 }
+{{ end }}
 
 func TestCleanPath(t *testing.T) {
 	type args struct {
