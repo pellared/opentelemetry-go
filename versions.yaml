@@ -36,6 +36,10 @@ module-sets:
       - go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc
       - go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp
       - go.opentelemetry.io/otel/exporters/stdout/stdoutlog
+  experimental-trace-http-v2:
+    version: v2.0.0-alpha.1
+    modules:
+      - go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp/v2
   experimental-schema:
     version: v0.0.19
     modules:
@@ -63,6 +67,9 @@ modules:
     version-refs:
       - ./internal/version.go
   go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp:
+    version-refs:
+      - ./internal/version.go
+  go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp/v2:
     version-refs:
       - ./internal/version.go
   go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp:

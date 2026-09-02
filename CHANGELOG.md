@@ -8,6 +8,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- Add the experimental, gRPC-free `go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp/v2` exporter using descriptor-distinct OTLP/HTTP protobuf messages.
+
+### Changed
+
+- Remove gRPC from the module and compiled dependency graphs of the `go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp` and `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp` exporters by using descriptor-distinct OTLP/HTTP protobuf messages.
+
 ### Fixed
 
 - Treat overflowing `OTEL_METRIC_EXPORT_INTERVAL` and `OTEL_METRIC_EXPORT_TIMEOUT` values as invalid in `go.opentelemetry.io/otel/sdk/metric`. (#8800)
