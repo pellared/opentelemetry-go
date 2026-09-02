@@ -4,7 +4,7 @@
 package otlpjson
 
 import (
-	coltracepb "go.opentelemetry.io/proto/otlphttp/collector/trace/v1"
+	coltracepb "go.opentelemetry.io/proto/slim/otlp/collector/trace/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 

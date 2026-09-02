@@ -15,11 +15,11 @@ partial-success responses, and lifecycle semantics are retained.
 
 ## Prototype dependency
 
-The descriptor-distinct protobuf module is currently available only from the
-companion fork prototype. Because Go does not inherit `replace` directives
-from dependency modules, consumers testing this branch need this directive in
-their main module:
+The descriptor-distinct revision of the slim protobuf module is currently
+available only from the companion fork prototype. Because Go does not inherit
+`replace` directives from dependency modules, consumers testing this branch
+need this directive in their main module:
 
 ```go
-replace go.opentelemetry.io/proto/otlphttp => github.com/pellared/opentelemetry-proto-go/otlphttp v0.0.0-20260902190748-436d9073304e
+replace go.opentelemetry.io/proto/slim/otlp => github.com/pellared/opentelemetry-proto-go/slim/otlp v0.0.0-20260902201059-b109c58a0263
 ```

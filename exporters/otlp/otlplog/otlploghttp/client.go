@@ -19,8 +19,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	collogpb "go.opentelemetry.io/proto/otlphttp/collector/logs/v1"
-	logpb "go.opentelemetry.io/proto/otlphttp/logs/v1"
+	collogpb "go.opentelemetry.io/proto/slim/otlp/collector/logs/v1"
+	logpb "go.opentelemetry.io/proto/slim/otlp/logs/v1"
 	"google.golang.org/protobuf/proto"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp/internal"

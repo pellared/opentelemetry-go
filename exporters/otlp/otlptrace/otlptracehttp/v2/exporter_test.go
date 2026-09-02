@@ -16,8 +16,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	coltracepb "go.opentelemetry.io/proto/otlphttp/collector/trace/v1"
-	tracepb "go.opentelemetry.io/proto/otlphttp/trace/v1"
+	coltracepb "go.opentelemetry.io/proto/slim/otlp/collector/trace/v1"
+	tracepb "go.opentelemetry.io/proto/slim/otlp/trace/v1"
 	"google.golang.org/protobuf/proto"
 
 	"go.opentelemetry.io/otel/attribute"

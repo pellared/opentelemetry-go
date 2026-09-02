@@ -6,7 +6,7 @@
 package transform
 
 import (
-	commonpb "go.opentelemetry.io/proto/otlphttp/common/v1"
+	commonpb "go.opentelemetry.io/proto/slim/otlp/common/v1"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"

@@ -18,8 +18,8 @@ import (
 	"sync"
 	"time"
 
-	colmetricpb "go.opentelemetry.io/proto/otlphttp/collector/metrics/v1"
-	metricpb "go.opentelemetry.io/proto/otlphttp/metrics/v1"
+	colmetricpb "go.opentelemetry.io/proto/slim/otlp/collector/metrics/v1"
+	metricpb "go.opentelemetry.io/proto/slim/otlp/metrics/v1"
 	"google.golang.org/protobuf/proto"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal"

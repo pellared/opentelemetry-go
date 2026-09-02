@@ -6,7 +6,7 @@ package transform
 import (
 	"math"
 
-	tracepb "go.opentelemetry.io/proto/otlphttp/trace/v1"
+	tracepb "go.opentelemetry.io/proto/slim/otlp/trace/v1"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"

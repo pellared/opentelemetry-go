@@ -29,8 +29,8 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	collpb "go.opentelemetry.io/proto/otlphttp/collector/metrics/v1"
-	mpb "go.opentelemetry.io/proto/otlphttp/metrics/v1"
+	collpb "go.opentelemetry.io/proto/slim/otlp/collector/metrics/v1"
+	mpb "go.opentelemetry.io/proto/slim/otlp/metrics/v1"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal/oconf"
 )

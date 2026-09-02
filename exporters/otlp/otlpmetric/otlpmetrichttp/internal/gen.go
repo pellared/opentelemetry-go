@@ -20,16 +20,16 @@ package internal
 //go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/oconf/optiontypes.go.tmpl "--data={\"grpc\": false}" --out=oconf/optiontypes.go
 //go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/oconf/tls.go.tmpl "--data={}" --out=oconf/tls.go
 
-//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/otest/client.go.tmpl "--data={\"internalImportPath\": \"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal\", \"protoImportPath\": \"go.opentelemetry.io/proto/otlphttp\"}" --out=otest/client.go
-//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/otest/client_test.go.tmpl "--data={\"internalImportPath\": \"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal\", \"protoImportPath\": \"go.opentelemetry.io/proto/otlphttp\"}" --out=otest/client_test.go
-//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/otest/collector.go.tmpl "--data={\"oconfImportPath\": \"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal/oconf\", \"protoImportPath\": \"go.opentelemetry.io/proto/otlphttp\", \"grpc\": false}" --out=otest/collector.go
+//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/otest/client.go.tmpl "--data={\"internalImportPath\": \"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal\", \"protoImportPath\": \"go.opentelemetry.io/proto/slim/otlp\"}" --out=otest/client.go
+//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/otest/client_test.go.tmpl "--data={\"internalImportPath\": \"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal\", \"protoImportPath\": \"go.opentelemetry.io/proto/slim/otlp\"}" --out=otest/client_test.go
+//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/otest/collector.go.tmpl "--data={\"oconfImportPath\": \"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal/oconf\", \"protoImportPath\": \"go.opentelemetry.io/proto/slim/otlp\", \"grpc\": false}" --out=otest/collector.go
 
-//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/attribute.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/otlphttp\"}" --out=transform/attribute.go
-//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/attribute_test.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/otlphttp\"}" --out=transform/attribute_test.go
-//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/error.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/otlphttp\"}" --out=transform/error.go
+//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/attribute.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/slim/otlp\"}" --out=transform/attribute.go
+//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/attribute_test.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/slim/otlp\"}" --out=transform/attribute_test.go
+//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/error.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/slim/otlp\"}" --out=transform/error.go
 //go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/error_test.go.tmpl "--data={}" --out=transform/error_test.go
-//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/metricdata.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/otlphttp\"}" --out=transform/metricdata.go
-//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/metricdata_test.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/otlphttp\"}" --out=transform/metricdata_test.go
+//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/metricdata.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/slim/otlp\"}" --out=transform/metricdata.go
+//go:generate gotmpl --body=../../../../../internal/shared/otlp/otlpmetric/transform/metricdata_test.go.tmpl "--data={\"protoImportPath\": \"go.opentelemetry.io/proto/slim/otlp\"}" --out=transform/metricdata_test.go
 
 //go:generate gotmpl --body=../../../../../internal/shared/counter/counter.go.tmpl "--data={}" --out=counter/counter.go
 //go:generate gotmpl --body=../../../../../internal/shared/counter/counter_test.go.tmpl "--data={}" --out=counter/counter_test.go

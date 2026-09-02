@@ -4,7 +4,7 @@
 package transform
 
 import (
-	resourcepb "go.opentelemetry.io/proto/otlphttp/resource/v1"
+	resourcepb "go.opentelemetry.io/proto/slim/otlp/resource/v1"
 
 	"go.opentelemetry.io/otel/sdk/resource"
 )

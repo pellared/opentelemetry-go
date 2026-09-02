@@ -11,8 +11,8 @@ import (
 	"errors"
 	"testing"
 
-	cpb "go.opentelemetry.io/proto/otlphttp/collector/metrics/v1"
-	mpb "go.opentelemetry.io/proto/otlphttp/metrics/v1"
+	cpb "go.opentelemetry.io/proto/slim/otlp/collector/metrics/v1"
+	mpb "go.opentelemetry.io/proto/slim/otlp/metrics/v1"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal"
 	"go.opentelemetry.io/otel/sdk/metric"
